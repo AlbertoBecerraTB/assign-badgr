@@ -1,0 +1,4 @@
+lib/config.py
+auth/*
+data/*
+__pycache__
