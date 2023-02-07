@@ -30,26 +30,55 @@ for badge in cb:
 
 print("\n")
 
-## Print only those which contains a certain string
-name_fil = input("Filtra por nombre: ")
-cb_fil = [badge for badge in cb if name_fil.lower() in badge.name.lower()]
+ls_badges_out = []
+ls_norm_att_out = []
+ls_names = []
+while True:
+    ## Print only those which contains a certain string
+    # You can finish the process just when you have at least one badge
+    name_fil = input("Filtra por nombre (Q para salir): ")
+    if (name_fil.upper() == "Q")&(len(ls_badges_out)>=1):
+        break
+    elif (name_fil.upper() == "Q")&(len(ls_badges_out)<1):
+        print("\nNecesitas al menos un badge\n")
+        continue
+    
+    cb_fil = [badge for badge in cb if name_fil.lower() in badge.name.lower()]
 
-if cb_fil == []:
-    print("No hay coincidencias")
-else:
-    for badge in cb_fil:
-        print(badge)
+    if cb_fil == []:
+        print("No hay coincidencias")
+    else:
+        for badge in cb_fil:
+            print(badge)
 
-print("\n")
+    print("\n")
 
-## Get ID of the one you are interested in assigning
-id = input("Copia y pega el ID del badge: ")
-badge = [bd for bd in cb if bd.entity_id == id][0]
+    ## Get ID of the one you are interested in assigning
+    # You can finish the process just when you have at least one badge
+    id = input("Copia y pega el ID del badge (Q para salir): ")
+    if (id.upper() == "Q")&(len(ls_badges_out)>=1):
+        break
+    elif (id.upper() == "Q")&(len(ls_badges_out)<1):
+        print("\nNecesitas al menos un badge\n")
+        continue
+    
+    # Check out all the badges
+    badge = [bd for bd in cb if bd.entity_id == id][0]
 
-norm_att = list(filter(lambda x: (not re.match('_', x)) 
-                    & (x not in ['REQUIRED_ATTRS', 'REQUIRED_JSON']), 
-                dir(badge)))
+    norm_att = list(filter(lambda x: (not re.match('_', x)) 
+                        & (x not in ['REQUIRED_ATTRS', 'REQUIRED_JSON']), 
+                    dir(badge)))
 
+    # Get the badges and their properties in two lists
+    # Future: It could be just one list [(badge1, attributes1), ...]
+    ls_badges_out.append(badge)
+    ls_norm_att_out.append(norm_att)
+    
+    # Get the names so that we can see our current selection
+    ls_names.append(getattr(badge, 'name', badge.entity_id))
+
+    print("\nCurrent selection: ", ls_names)
+    print("\n\n")
 print("\n")
 
 ## Read name mappings
@@ -66,6 +95,7 @@ while True:
         receivers = list(d_names.keys())
         break
     else:
+        # HOTFIX: Needs a name
         receivers.append(email)
         print(receivers, end="\n")
 
@@ -76,18 +106,20 @@ for email in receivers:
     email = email.replace("\n", "") 
     d_att = {}
 
-    for att in norm_att:
-        d_att[att] = getattr(badge,att)
+    for norm_att, badge in zip(ls_norm_att_out, ls_badges_out):
+        for att in norm_att:
+            d_att[att] = getattr(badge,att)
 
-    d_att['created_at'] = datetime.strftime(d_att['created_at'], '%Y-%m-%dT%H:%M:%S')
-    d_att['recipient'] = {"identity": email}
-    d_att['narrative'] = "Otorgado a {} por su excelente desempeño".format(d_names[email])
-    d_att["notify"] = True
-    d_att.pop('expires')
+        d_att['created_at'] = datetime.strftime(d_att['created_at'], '%Y-%m-%dT%H:%M:%S')
+        d_att['recipient'] = {"identity": email}
+        d_att['narrative'] = "Otorgado a {} por su excelente desempeño".format(d_names[email])
+        d_att["notify"] = True
+        d_att.pop('expires')
 
-    ## Assign the badge
-    result = client.award_badge(badge.entity_id, badge_data=d_att)
+        ## Assign the badge
+        result = client.award_badge(badge.entity_id, badge_data=d_att)
 
-    print(email)
-    print(result)
-    print("\n")
+        print(email)
+        print(d_att['name'])
+        print(result)
+        print("\n")

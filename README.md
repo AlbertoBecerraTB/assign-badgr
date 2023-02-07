@@ -24,9 +24,10 @@ Assigning badges on Bagdr platform can be tedious and time consuming. The aim of
 2. Introduce your password (according to the account in `config.py`)
 3. Filter badges by name (Case Insensitive)
 4. Insert badge ID to select one
-5. Choose which users are you sending the badge to
+5. You can select more than one and you can see the names of the badges in list
+6. Choose which users are you sending the badge to
     
     - Option A: Insert emails one by one until you type "Q". CAUTION: If the email is not in the list it will raise an error
     - Option B: Select all the users in the list
 
-6. The badges are sent
+7. The badges are sent
